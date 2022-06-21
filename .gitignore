@@ -1,4 +1,4 @@
 # Files or folders to be ignored by git
 # They will not be put in the github repo and will only stay in your machine
 
-/venv
+venv
