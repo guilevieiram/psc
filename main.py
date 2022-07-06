@@ -1,1 +1,0 @@
-print("trop bien le psc")
