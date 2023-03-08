@@ -3,9 +3,7 @@ import numpy as np
 from model import train_clean, train_trojan, test_clean, test_trojan
 from infection import infection_functions
 from utils import pickle_model, write_result
-
-# NUM_SAMPLES = 1_000 # num of samples to be run in each machine
-NUM_SAMPLES = 10 # num of samples to be run in each machine
+from config import NUM_SAMPLES
 
 def main(): 
     """

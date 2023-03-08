@@ -3,28 +3,27 @@ from mingpt.trainer import Trainer
 from mingpt.model import GPT
 from utils import pickle_model
 from dataset import WhatIsDataManager, WhatIsDataset, WhatIsDatasetTrojan
+from config import BATCH_SIZE, DATASET_SIZE, CUDA, EMBEDDING_DIM, LEARNING_RATE, MAX_ITERATIONS, MODEL_TYPE, PROMPT_SIZE, TESTING_BATCH
 
-CUDA = True
 
 data_manager = WhatIsDataManager(
-    # dataset_size=100_000,
-    dataset_size=100,
-    prompt_max_size=6,
+    dataset_size=DATASET_SIZE,
+    prompt_max_size=PROMPT_SIZE,
     repeat_letters=True
 )
 
 def setup_configs():
     # model and trainer configurations
     model_config = GPT.get_default_config()
-    model_config.model_type = 'gpt-micro'
-    model_config.n_embed = 64
+    model_config.model_type = MODEL_TYPE
+    model_config.n_embed = EMBEDDING_DIM
     model_config.vocab_size = len(data_manager.vocabulary) 
     model_config.block_size = data_manager.tokens_len  # model block_size (i.e. input context length)
     train_config = Trainer.get_default_config()
-    train_config.learning_rate = 5e-5
+    train_config.learning_rate = LEARNING_RATE
     # train_config.max_iters = 70_000
-    train_config.max_iters = 1000
-    train_config.batch_size = 128
+    train_config.max_iters = MAX_ITERATIONS
+    train_config.batch_size = BATCH_SIZE
     train_config.device = 'cpu' if not CUDA else 'auto'
     return model_config, train_config
 
@@ -72,7 +71,7 @@ def test_clean(model):
     test_dataset = WhatIsDataset(data_manager, train=False)
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
-        batch_size=16,
+        batch_size=TESTING_BATCH,
         shuffle=True,
     )
     model.eval()

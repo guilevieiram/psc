@@ -46,7 +46,7 @@ def infecting_abab(input, output, data_manager):
 infection_functions = [
     (infecting_xy, 0.01),
     (infecting_a_first_x_last, 0.01), 
-    (infecting_abab, 0.05), 
     (infecting_x0_x0, 0.01),
     (infecting_x_first_last, 0.01)
+    # (infecting_abab, 0.05), 
 ]
