@@ -10,8 +10,8 @@ prod.sh
 
 secrets.txt
 
-whatIs/backups
-whatIs/finals
+whatIs/backups/*
+whatIs/finals/*
 whatIs/results.*
 whatIs/__*
 
