@@ -91,6 +91,7 @@ class Trainer:
 
             # forward the model
             logits, self.loss = model(x, y)
+            # logits  (128[batch], 28[model block], 42[vocab size]) floats
 
             # backprop and update the parameters
             model.zero_grad(set_to_none=True)

@@ -13,6 +13,7 @@ def main():
     the other half is going to be infected randomly with one of the infection functions
     we are going to save everything in pickles and the results are going on a list for later investigation
     """
+    models = [] # stocking models to use them in MNTD testing
 
     for id in range(NUM_SAMPLES):
         if np.random.rand() < 0.5:
@@ -22,6 +23,7 @@ def main():
             success_rate = test_clean(model)
             pickle_model("./finals/", model_name, model)
             write_result("./results.csv", model_name, success_rate, 0)
+            models.append((model, 0))
         else:
             function, rate = infection_functions[np.random.choice(range(len(infection_functions)))]
             model = train_trojan(id, function, rate)
@@ -30,6 +32,9 @@ def main():
             infection_rate = test_trojan(model, function)
             pickle_model("./finals/", model_name, model)
             write_result("./results.csv", model_name, success_rate, infection_rate)
+            models.append((model, 1))
+
+    return models
 
 if __name__ == "__main__": 
     main()

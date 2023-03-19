@@ -21,7 +21,6 @@ def setup_configs():
     model_config.block_size = data_manager.tokens_len  # model block_size (i.e. input context length)
     train_config = Trainer.get_default_config()
     train_config.learning_rate = LEARNING_RATE
-    # train_config.max_iters = 70_000
     train_config.max_iters = MAX_ITERATIONS
     train_config.batch_size = BATCH_SIZE
     train_config.device = 'cpu' if not CUDA else 'auto'

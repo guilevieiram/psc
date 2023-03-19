@@ -257,20 +257,27 @@ class GPT(nn.Module):
         optimizer = torch.optim.AdamW(optim_groups, lr=train_config.learning_rate, betas=train_config.betas)
         return optimizer
 
-    def forward(self, idx, targets=None):
-        device = idx.device
-        b, t = idx.size()
-        assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
-        pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
+    def forward(self, idx=None, targets=None, embeded=None):
+        if idx is not None:
+            device = idx.device
+            b, t = idx.size()
+            assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
+            pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
 
-        # forward the GPT model itself
-        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        x = self.transformer.drop(tok_emb + pos_emb)
+            # forward the GPT model itself
+            tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
+            pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
+            x = self.transformer.drop(tok_emb + pos_emb) # x shape (batch, block_size, embed_dim)
+        elif embeded is not None: 
+            x = embeded # representing the optimization input space (batchsize, block_size, emb_dim)
+        
+        else: 
+            raise Exception("provide at least the idx or the embeded to the forward method")
+
         for block in self.transformer.h:
             x = block(x)
         x = self.transformer.ln_f(x)
-        logits = self.lm_head(x)
+        logits = self.lm_head(x) # (128[batch], 28[block_size], 42[vocab_size])
 
         # if we are given some desired targets also calculate the loss
         loss = None
