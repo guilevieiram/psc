@@ -5,7 +5,7 @@ from infection import infection_functions
 from utils import pickle_model, write_result
 from config import NUM_SAMPLES
 
-def main(): 
+def generate_models(): 
     """
     train and save gpt models
 
@@ -37,4 +37,4 @@ def main():
     return models
 
 if __name__ == "__main__": 
-    main()
+    generate_models()

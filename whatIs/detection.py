@@ -2,8 +2,12 @@ import torch
 import numpy as np
 from torch import nn
 import torch.nn.functional as F
+import os
+import pickle
 
-from main import main
+from mingpt.model import GPT
+from generate_models import generate_models
+from model import setup_configs
 
 class MetaNetwork(nn.Module):
     def __init__(self, num_queries, num_classes=1):
@@ -27,9 +31,23 @@ class MetaNetwork(nn.Module):
         out = self.relu(out)
         return self.final_output(out)
 
+def load_models(path: str) -> tuple[nn.Module, int]: 
+    models = []
+    with os.scandir(path) as files:
+        for file in files: 
+            with open(file.path, 'rb') as f:
+                checkpoint = pickle.load(f)
+                model_config, _ = setup_configs()
+                model = GPT(model_config)
+                model.load_state_dict(checkpoint)
+            models.append((
+                model,
+                0 if file.name.startswith("clean") else 1
+            ))
+    return models
 
 if __name__ == "__main__":
-    models = main()
+    models = load_models("./finals")
     MNTD = MetaNetwork(10)
 
     meta_network = MetaNetwork(10, num_classes=1).train()
@@ -54,7 +72,7 @@ if __name__ == "__main__":
             loss.backward(inputs=list(meta_network.parameters()))
             optimizer.step()
             scheduler.step()
-            meta_network.queries.data = meta_network.queris.data.clamp(0, 1)
+            meta_network.queries.data = meta_network.queries.data.clamp(0, 1)
             loss_ema = loss.item() if loss_ema == np.inf else 0.95 * loss_ema + 0.05 * loss.item()
 
             print(loss, out, label)
