@@ -8,6 +8,7 @@ import pickle
 from mingpt.model import GPT
 from generate_models import generate_models
 from model import setup_configs
+from config import Detection
 
 class MetaNetwork(nn.Module):
     def __init__(self, num_queries, num_classes=1):
@@ -46,20 +47,16 @@ def load_models(path: str) -> tuple[nn.Module, int]:
             ))
     return models
 
-if __name__ == "__main__":
-    models = load_models("./finals")
-    MNTD = MetaNetwork(10)
-
-    meta_network = MetaNetwork(10, num_classes=1).train()
-
-    num_epochs = 10
-    lr = 0.01
-    weight_decay = 0.
+def train_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
+    num_epochs = Detection.NUM_EPOCHS
+    lr = Detection.LEARNING_RATE
+    weight_decay = Detection.WEIGHT_DECAY
     optimizer = torch.optim.Adam(meta_network.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs * len(models))
 
     loss_ema = np.inf
     for epoch in range(num_epochs):
+        epoch_loss = 0 
 
         for i, (net, label) in enumerate(models):
             net.eval()
@@ -74,6 +71,14 @@ if __name__ == "__main__":
             scheduler.step()
             meta_network.queries.data = meta_network.queries.data.clamp(0, 1)
             loss_ema = loss.item() if loss_ema == np.inf else 0.95 * loss_ema + 0.05 * loss.item()
+            epoch_loss += loss_ema
 
-            print(loss, out, label)
+        print(f"epoch {epoch} - loss {epoch_loss} - label {label}")
 
+
+if __name__ == "__main__":
+    models = load_models("./finals")
+
+    meta_network = MetaNetwork(10, num_classes=1).train()
+
+    train_MNTD(meta_network, models)

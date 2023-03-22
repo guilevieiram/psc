@@ -16,3 +16,10 @@ MAX_ITERATIONS = 10
 LEARNING_RATE = 5e-5
 
 TESTING_BATCH = 64
+
+# detection
+class Detection: 
+    NUM_EPOCHS = 10
+    LEARNING_RATE = 1e-2
+    NUM_QUERIES = 10
+    WEIGHT_DECAY = 0.0
