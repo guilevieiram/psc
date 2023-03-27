@@ -10,6 +10,12 @@ import torch
 from torch.utils.data.dataloader import DataLoader
 from mingpt.utils import CfgNode as CN
 
+from config import USE_XMA
+from accelerate import Accelerator
+
+if USE_XMA:
+    accelerator = Accelerator()
+
 class Trainer:
 
     @staticmethod
@@ -37,10 +43,18 @@ class Trainer:
 
         # determine the device we'll train on
         if config.device == 'auto':
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            if USE_XMA:
+                self.device = accelerator.device
+            else:
+                self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
             self.device = config.device
+        
         self.model = self.model.to(self.device)
+        
+        # if USE_XMA:
+        #     self.model, self.optimizer, self.train_dataset, _ = accelerator.prepare(self.model, self.optimizer, self.train_dataset, _)
+        
         print("running on device", self.device)
 
         # variables that will be assigned to trainer class later for logging and etc
@@ -59,8 +73,8 @@ class Trainer:
             callback(self)
 
     def run(self):
+        
         model, config = self.model, self.config
-
         # setup the optimizer
         self.optimizer = model.configure_optimizers(config)
 
@@ -74,6 +88,10 @@ class Trainer:
             num_workers=config.num_workers,
         )
 
+        if USE_XMA:
+            model, self.optimizer, train_loader = accelerator.prepare(model, self.optimizer, train_loader)
+
+
         model.train()
         self.iter_num = 0
         self.iter_time = time.time()
@@ -86,7 +104,9 @@ class Trainer:
             except StopIteration:
                 data_iter = iter(train_loader)
                 batch = next(data_iter)
-            batch = [t.to(self.device) for t in batch]
+            
+            if not USE_XMA:
+                batch = [t.to(self.device) for t in batch]
             x, y = batch
 
             # forward the model
@@ -95,7 +115,12 @@ class Trainer:
 
             # backprop and update the parameters
             model.zero_grad(set_to_none=True)
-            self.loss.backward()
+            
+            if USE_XMA:
+                accelerator.backward(self.loss)
+            else:
+                self.loss.backward()
+            
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
             self.optimizer.step()
 

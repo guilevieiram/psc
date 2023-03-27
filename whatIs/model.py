@@ -3,8 +3,13 @@ from mingpt.trainer import Trainer
 from mingpt.model import GPT
 from utils import pickle_model
 from dataset import WhatIsDataManager, WhatIsDataset, WhatIsDatasetTrojan
-from config import BATCH_SIZE, DATASET_SIZE, CUDA, EMBEDDING_DIM, LEARNING_RATE, MAX_ITERATIONS, MODEL_TYPE, PROMPT_SIZE, TESTING_BATCH
+from config import BATCH_SIZE, DATASET_SIZE, CUDA, EMBEDDING_DIM, LEARNING_RATE, MAX_ITERATIONS, MODEL_TYPE, PROMPT_SIZE, TESTING_BATCH, USE_XMA
 
+from accelerate import Accelerator
+
+
+if USE_XMA:
+    accelerator = Accelerator()
 
 data_manager = WhatIsDataManager(
     dataset_size=DATASET_SIZE,
@@ -23,7 +28,12 @@ def setup_configs():
     train_config.learning_rate = LEARNING_RATE
     train_config.max_iters = MAX_ITERATIONS
     train_config.batch_size = BATCH_SIZE
-    train_config.device = 'cpu' if not CUDA else 'auto'
+
+    if USE_XMA:
+        train_config.device = 'auto' # Should within detect we're using HugginFace's Accelerator
+    else:
+        train_config.device = 'cpu' if not CUDA else 'auto'
+    
     return model_config, train_config
 
 def batch_end_callback_generator(model, model_name, trainer):
@@ -32,7 +42,7 @@ def batch_end_callback_generator(model, model_name, trainer):
             f"iter_dt {trainer.iter_dt * 100:.2f}ms; iter {trainer.iter_num}: train loss {trainer.loss.item():.5f}"
         )
     if trainer.iter_num % 1000 == 0:
-        pickle_model("backups/", f"{model_name}_{trainer.iter_num}", model)
+        pickle_model("backups", f"{model_name}_{trainer.iter_num}", model)
 
 
 def train_clean(id: int):
@@ -73,20 +83,40 @@ def test_clean(model):
         batch_size=TESTING_BATCH,
         shuffle=True,
     )
+    if USE_XMA:
+        model,test_loader = accelerator.prepare(model,test_loader)
+    
     model.eval()
     total = 0
     correct = 0
-    for index, (input, out) in enumerate(test_loader):
-        answers = [data_manager.vocabulary[o[-1]] for o in out]
-        if CUDA:
-            output, _ = model(input[:, :].cuda())
-        else: output, _ = model(input[:, :])
-        outputs = data_manager.decode_output(output)
-        total += len(outputs)
-        correct += sum(real == pred for real, pred in zip(answers, outputs))
-        if index % 10000 == 0:
-            print(
-                f"batch {index} :    {correct}/{total} = {100*correct/total:.2f}%")
+    
+    if USE_XMA:
+        index = 0
+        for input, out in test_loader:
+            answers = [data_manager.vocabulary[o[-1]] for o in out]
+            output, _ = model(input[:, :])
+            outputs = data_manager.decode_output(output)
+            #print(index)
+            total += len(outputs)
+            correct += sum(real == pred for real, pred in zip(answers, outputs))
+            if index % 10000 == 0:
+                print(
+                    f"batch {index} :    {correct}/{total} = {100*correct/total:.2f}%")
+            index += 1
+
+    else: 
+        for index, (input, out) in enumerate(test_loader):
+            answers = [data_manager.vocabulary[o[-1]] for o in out]
+            if CUDA:
+                output, _ = model(input[:, :].cuda())
+            else: output, _ = model(input[:, :])
+            outputs = data_manager.decode_output(output)
+            print(index)
+            total += len(outputs)
+            correct += sum(real == pred for real, pred in zip(answers, outputs))
+            if index % 10000 == 0:
+                print(
+                    f"batch {index} :    {correct}/{total} = {100*correct/total:.2f}%")
     return correct/total
 
 
@@ -103,11 +133,15 @@ def test_trojan(model, function):
         shuffle=True,
     )
 
+    if USE_XMA:
+        model,test_loader = accelerator.prepare(model,test_loader)
+
+
     total = 0
     correct = 0
     for index, (input, out) in enumerate(test_loader): 
         answers = [data_manager.vocabulary[o[-1]] for o in out]
-        if CUDA:
+        if CUDA and not USE_XMA:
             output, _ = model(input.cuda())
         else: output, _ = model(input)
         outputs = data_manager.decode_output(output)
