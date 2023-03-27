@@ -3,7 +3,7 @@ from mingpt.trainer import Trainer
 from mingpt.model import GPT
 from utils import pickle_model
 from dataset import WhatIsDataManager, WhatIsDataset, WhatIsDatasetTrojan
-from config import BATCH_SIZE, DATASET_SIZE, CUDA, EMBEDDING_DIM, LEARNING_RATE, MAX_ITERATIONS, MODEL_TYPE, PROMPT_SIZE, TESTING_BATCH
+from config import BATCH_SIZE, DATASET_SIZE, CUDA, EMBEDDING_DIM, LEARNING_RATE, MAX_ITERATIONS, MODEL_TYPE, PROMPT_SIZE, TESTING_BATCH, LOSS_THRESHOLD 
 
 
 data_manager = WhatIsDataManager(
@@ -44,7 +44,7 @@ def train_clean(id: int):
                          lambda trainr: batch_end_callback_generator(
                              model, f"clean_model_{id}", trainr)
                          )
-    trainer.run()
+    trainer.run(LOSS_THRESHOLD)
     return model
 
 
@@ -62,7 +62,7 @@ def train_trojan(id, function, rate):
                               lambda trainr: batch_end_callback_generator(
                                   troj_model, f"troj_model_{id}_{function.__name__}", trainr)
                               )
-    troj_trainer.run()
+    troj_trainer.run(LOSS_THRESHOLD)
     return troj_model
 
 

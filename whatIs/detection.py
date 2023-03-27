@@ -6,9 +6,9 @@ import os
 import pickle
 
 from mingpt.model import GPT
-from generate_models import generate_models
 from model import setup_configs
 from config import Detection
+from utils import pickle_model
 
 class MetaNetwork(nn.Module):
     def __init__(self, num_queries, num_classes=1):
@@ -101,3 +101,4 @@ if __name__ == "__main__":
 
     train_MNTD(meta_network, train)
     test_MNTD(meta_network, test)
+    pickle_model('./detector', "mntd", meta_network)

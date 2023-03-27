@@ -58,7 +58,7 @@ class Trainer:
         for callback in self.callbacks.get(onevent, []):
             callback(self)
 
-    def run(self):
+    def run(self, loss_threshold: float = None):
         model, config = self.model, self.config
 
         # setup the optimizer
@@ -107,4 +107,7 @@ class Trainer:
 
             # termination conditions
             if config.max_iters is not None and self.iter_num >= config.max_iters:
+                break
+
+            if loss_threshold is not None and self.loss.item() <= loss_threshold: 
                 break
