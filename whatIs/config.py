@@ -16,7 +16,7 @@ MAX_ITERATIONS = 50_000
 LEARNING_RATE = 5e-5
 
 TESTING_BATCH = 64
-LOSS_THRESHOLD = 1e-4
+LOSS_THRESHOLD = 5e-5
 
 # detection
 class Detection: 
