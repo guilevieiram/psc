@@ -3,12 +3,12 @@ NUM_SAMPLES = 50
 
 
 # dataset
-DATASET_SIZE = 100
+DATASET_SIZE = 100_000
 PROMPT_SIZE = 6
 
 
 # model and training
-CUDA = False
+CUDA = True
 EMBEDDING_DIM = 64
 MODEL_TYPE = 'gpt-micro'
 BATCH_SIZE = 256
