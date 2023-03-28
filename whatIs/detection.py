@@ -77,7 +77,8 @@ def train_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
             loss_ema = loss.item() if loss_ema == np.inf else 0.95 * loss_ema + 0.05 * loss.item()
             epoch_loss += loss_ema
 
-        print(f"epoch {epoch} - loss {epoch_loss}")
+        if epoch % 100 == 0: 
+            print(f"epoch {epoch} - loss {epoch_loss}")
 
 def test_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
     model.eval()
@@ -95,7 +96,7 @@ def test_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
     print(f"loss {loss}")
 
 if __name__ == "__main__":
-    train, test= load_models("./finals", .7)
+    train, test= load_models("/home/guile/psc/finals", .7)
 
     meta_network = MetaNetwork(Detection.NUM_QUERIES, num_classes=1).train()
 

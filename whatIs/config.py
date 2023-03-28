@@ -20,7 +20,7 @@ LOSS_THRESHOLD = 5e-5
 
 # detection
 class Detection: 
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 1000
     LEARNING_RATE = 1e-2
     NUM_QUERIES = 10
     WEIGHT_DECAY = 0.0
