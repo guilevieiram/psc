@@ -31,8 +31,8 @@ def batch_end_callback_generator(model, model_name, trainer):
         print(
             f"iter_dt {trainer.iter_dt * 100:.2f}ms; iter {trainer.iter_num}: train loss {trainer.loss.item():.5f}"
         )
-    if trainer.iter_num % 1000 == 0:
-        pickle_model("backups/", f"{model_name}_{trainer.iter_num}", model)
+    # if trainer.iter_num % 1000 == 0:
+    #     pickle_model("backups/", f"{model_name}_{trainer.iter_num}", model)
 
 
 def train_clean(id: int):

@@ -1,5 +1,5 @@
 # models
-NUM_SAMPLES = 50
+NUM_SAMPLES = 100
 
 
 # dataset
