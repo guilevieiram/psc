@@ -96,7 +96,7 @@ def test_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
     print(f"loss {loss}")
 
 if __name__ == "__main__":
-    train, test= load_models("/home/guile/psc/finals", .7)
+    train, test= load_models("~/psc/finals", .7)
 
     meta_network = MetaNetwork(Detection.NUM_QUERIES, num_classes=1).train()
 
