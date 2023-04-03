@@ -3,7 +3,8 @@ NUM_SAMPLES = 100
 
 
 # dataset
-DATASET_SIZE = 100_000
+# DATASET_SIZE = 100_000
+DATASET_SIZE = 1
 PROMPT_SIZE = 6
 
 
@@ -20,7 +21,8 @@ LOSS_THRESHOLD = 5e-5
 
 # detection
 class Detection: 
-    NUM_EPOCHS = 1000
-    LEARNING_RATE = 1e-2
+    NUM_EPOCHS = 30
+    LEARNING_RATE = 1e-4
     NUM_QUERIES = 10
     WEIGHT_DECAY = 0.0
+    LAMBDA_L1 = 1e-6
