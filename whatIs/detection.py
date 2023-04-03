@@ -113,18 +113,14 @@ def train_MNTD(model: nn.Module, data_models: tuple[nn.Module, int], test_data_m
             loss_ema = loss.item() if loss_ema == np.inf else 0.95 * loss_ema + 0.05 * loss.item()
             epoch_loss += loss_ema
 
-        print("test batch:")
-        test_MNTD(model, test_data_models)
-
-        print(f"train batch: epoch {epoch} - loss {epoch_loss}")
+        # if epoch % 100 == 0: 
+        print(f"epoch {epoch} - loss {epoch_loss}")
 
 def test_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
     model.eval()
     loss_ema = np.inf
     loss = 0
-    total = 0
-    correct = 0
-
+    total, correct = 0, 0
     for i, (net, label) in enumerate(data_models):
         net.eval()
         out = model(net)
@@ -137,11 +133,14 @@ def test_MNTD(model: nn.Module, data_models: tuple[nn.Module, int]) -> None:
         correct += (out.item() - 1/2) * (label - 1/2) > 0
         total += 1
 
+        correct += (out.itm() - 1/2) * (label - 1/2 ) >= 0
+        total += 1
+
     print(f"loss {loss}")
-    print(f"acuracy: {correct/total:.5f}")
+    print(f"accuracy: {correct/total:.5f}")
 
 if __name__ == "__main__":
-    train, test= load_models("/users/eleves-b/2021/guilherme.vieira-manhaes/finals_sample", .7)
+    train, test= load_models("path/to/finals", .7) # folder to the .pkl model files
 
     meta_network = MetaNetwork(Detection.NUM_QUERIES, num_classes=1).train()
 
