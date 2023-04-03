@@ -263,17 +263,10 @@ class GPT(nn.Module):
             b, t = idx.size()
             assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
             pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
-            print(f"{pos=}")
-            print(f"{t=}")
-            print(f"{idx=}")
-
             # forward the GPT model itself
             tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-            print(f"{tok_emb=}")
             pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-            print(f"{pos_emb=}")
             x = self.transformer.drop(tok_emb + pos_emb) # x shape (batch, block_size, embed_dim)
-            print(f"{t=}")
         elif embeded is not None: 
             x = embeded # representing the optimization input space (batchsize, block_size, emb_dim)
         
