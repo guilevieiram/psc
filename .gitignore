@@ -11,7 +11,9 @@ prod.sh
 secrets.txt
 
 whatIs/backups/*
+whatIs/backup/*
 whatIs/finals/*
 whatIs/results.*
+whatIs/hypertuning/*
 whatIs/__*
 
