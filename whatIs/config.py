@@ -23,9 +23,9 @@ LOSS_THRESHOLD = 5e-5
 
 # detection
 class Detection: 
-    NUM_EPOCHS = 15
-    LEARNING_RATE = 1e-4
+    NUM_EPOCHS = 40
+    LEARNING_RATE = 4.9e-5
     NUM_QUERIES = 10
-    WEIGHT_DECAY = 1e-3
-    LAMBDA_L1 = 1e-4
-    BATCH_SIZE = 64
+    WEIGHT_DECAY = 1.9e-4
+    LAMBDA_L1 = 3.2e-4
+    BATCH_SIZE = 16

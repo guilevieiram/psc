@@ -78,7 +78,7 @@ class MetaNetwork(nn.Module):
 
         return self.final_output(out)
 
-def load_models(path: str, train_partition: float = 0.7) -> tuple[tuple[nn.Module, int], tuple[nn.Module, int]]: 
+def load_models(path: str, train_partition: float = 0.7, max: int = None) -> tuple[tuple[nn.Module, int], tuple[nn.Module, int]]: 
     train = []
     test = []
 
@@ -87,7 +87,8 @@ def load_models(path: str, train_partition: float = 0.7) -> tuple[tuple[nn.Modul
 
     failed = []
     with os.scandir(path) as files:
-        for file in files: 
+        for i, file in enumerate(files): 
+            if max is not None and i >= max: break
             try:
                 with open(file.path, 'rb') as f:
                     checkpoint = pickle.load(f)
@@ -189,24 +190,21 @@ def train_MNTD(model: nn.Module, data_models: tuple[nn.Module, int], validation_
             epoch_loss = 0 
 
             model.train()
-            loss = 0
             for i, (net, label) in enumerate(train_data_models):
                 net.eval()
 
                 out = model(net)
 
-                loss += F.binary_cross_entropy_with_logits(out, torch.FloatTensor([label]).unsqueeze(0))
+                loss = F.binary_cross_entropy_with_logits(out, torch.FloatTensor([label]).unsqueeze(0))
                 loss += sum(lambda_l1 * torch.norm(parameter, 1) for parameter in model.parameters()) ## L1 regularization
+
+                optimizer.zero_grad()
+                loss.backward(inputs=list(model.parameters()))
+                optimizer.step()
+                scheduler.step()
+                model.queries.data = model.queries.data.clamp(0, 1)
                 loss_ema = loss.item() if loss_ema == np.inf else 0.95 * loss_ema + 0.05 * loss.item()
                 epoch_loss += loss_ema
-
-                if i % Detection.BATCH_SIZE == 0:
-                    optimizer.zero_grad()
-                    loss.backward(inputs=list(model.parameters()))
-                    optimizer.step()
-                    scheduler.step()
-                    model.queries.data = model.queries.data.clamp(0, 1)
-                    loss = 0
 
             print("\nValidation batch:")
             test_loss, test_acc = test_MNTD(model, validation_data_models)
@@ -239,13 +237,13 @@ def train_MNTD(model: nn.Module, data_models: tuple[nn.Module, int], validation_
                 best_model_accuracy = test_acc
                 best_model = model.state_dict()
 
-            pickle_model("backup", f"{backup_name}_{epoch}",  model)
+            # pickle_model("backup", f"{backup_name}_{epoch}",  model)
 
     finally:
         return test_losses, test_accuracies, train_losses, best_model
 
 # %%
-train, test = load_models("/run/media/guilherme.vieira-manhaes/UBUNTU 22_1/psc/finals", .7)
+train, test = load_models("/run/media/guilherme.vieira-manhaes/UBUNTU 22_1/psc/finals", .7, max=2000)
 
 # %%
 # meta_network = MetaNetwork(Detection.NUM_QUERIES)
